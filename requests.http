@@ -1,0 +1,9 @@
+POST http://localhost:3000/
+Content-Type: application/json
+
+{
+    "userChatId": "dfhskjd324h2kjgfhdkd",
+    "userInput": "Hey, could you help me?"
+}
+
+###
