@@ -3,7 +3,7 @@ Content-Type: application/json
 
 {
     "userChatId": "dfhskjd324h2kjgfhdkd",
-    "userInput": "Hey, could you help me?"
+    "userInput": "What is previous message?"
 }
 
 ###
