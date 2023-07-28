@@ -1,6 +1,7 @@
 import 'dotenv/config'
 import { initializeApp, cert } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
+import { getFirestore } from 'firebase-admin/firestore'
 
 const {
   FIREBASE_TYPE,
@@ -34,3 +35,4 @@ const firebaseConfig = {
 initializeApp(firebaseConfig);
 
 export const firebaseAuth = getAuth();
+export const firebaseFirestore = getFirestore();
