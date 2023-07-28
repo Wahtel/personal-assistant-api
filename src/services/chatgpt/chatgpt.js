@@ -1,4 +1,4 @@
-import openAiApiInstance from '../../config/open-ai.js';
+import openAiApiInstance from '../../config/open-ai/open-ai.js';
 
 /**
  * Get ChatGPT chat completion with previous chat messages context

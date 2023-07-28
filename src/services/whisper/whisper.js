@@ -1,4 +1,4 @@
-import openAiApiInstance from '../../config/open-ai.js';
+import openAiApiInstance from '../../config/open-ai/open-ai.js';
 import { createChatCompletionWithChatGpt } from '../chatgpt/chatgpt.js';
 
 export async function transcribeAudio(file) {
