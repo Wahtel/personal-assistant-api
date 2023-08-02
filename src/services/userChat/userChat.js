@@ -33,8 +33,8 @@ export async function deleteUserChat(userId, chatId) {
 }
 
 /**
- * Service method for UserChatController.addNewTextMessage controller method which adds user text message to
- * The chat, generate ChatGPT response, add this response to chat and return response back to user
+ * Service method which adds user text message to еhe chat, generate ChatGPT response, add this response to chat and 
+ * Return response back to user
  * @param {} userId
  * @param {*} userChatTextMessage
  * @returns
@@ -48,11 +48,7 @@ export async function addNewTextMessageToUserChat(userId, userChatTextMessage) {
 
   await addChatGptAssistantMessageToUserChat(userId, userChatTextMessage.userChatId, chatGptCompletion);
 
-  const result = {
-    completion: chatGptCompletion
-  };
-
-  return result;
+  return chatGptCompletion;
 }
 
 /**

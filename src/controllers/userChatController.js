@@ -52,7 +52,10 @@ export default class UserChatController {
     const { uid } = req;
     const { userChatId, userInput } = req.body;
     const userChatTextMessage = new UserChatTextMessage(userChatId, userInput);
-    const result = await addNewTextMessageToUserChat(uid, userChatTextMessage)
+    const chatGptCompletion = await addNewTextMessageToUserChat(uid, userChatTextMessage)
+    const result = {
+      completion: chatGptCompletion
+    };
 
     res.status(200).send(result);
   }
