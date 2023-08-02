@@ -1,3 +1,6 @@
+import { Readable } from 'stream';
+
+import UserChatTextMessage from '../../domain/userChatTextMessage.js';
 import {
   createUserChatForUser,
   deleteUserChatById,
@@ -5,6 +8,7 @@ import {
   getUserChatMessages
 } from '../../persistence/firestore/userChat.js';
 import { createChatCompletionWithChatGpt } from '../chatgpt/chatgpt.js';
+import { transcribeAudio } from '../whisper/whisper.js';
 
 /**
  * Available roles for ChatGPT messages
@@ -49,6 +53,31 @@ export async function addNewTextMessageToUserChat(userId, userChatTextMessage) {
   await addChatGptAssistantMessageToUserChat(userId, userChatTextMessage.userChatId, chatGptCompletion);
 
   return chatGptCompletion;
+}
+
+/**
+ * Service method which transcribe audio, send transcribed text to ChatGPT and return transcribed text along with
+ * ChatGPT completion + saves all the messages to the database
+ * @param {} userId
+ * @param {*} userChatTextMessage
+ * @returns
+ */
+export async function addNewAudioMessageToUserChat(file, userId, userChatId) {
+  const audioReadStream = Readable.from(file.buffer);
+  // OpenAI WhisperAPI is hacking around MIME type and is sensitive for file extension, so we need to add .path attribute
+  // To stream object, because Readable.from() does not have whereas fs.createReadStream() has it
+  // Supported formats: mp3, mp4, mpeg, mpga, m4a, wav, or webm
+  audioReadStream.path = 'file.m4a';
+
+  const transcribedText = await transcribeAudio(audioReadStream);
+  const userChatTextMessage = new UserChatTextMessage(userChatId, transcribedText);
+  const chatGptCompletion = await addNewTextMessageToUserChat(userId, userChatTextMessage);
+  const result = {
+    transcribedText,
+    completion: chatGptCompletion
+  };
+
+  return result;
 }
 
 /**

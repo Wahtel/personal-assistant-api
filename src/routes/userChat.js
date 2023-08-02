@@ -8,6 +8,6 @@ const userChatRouter = Router();
 userChatRouter.post('/chat', verifyUser, UserChatController.createNewUserChat);
 userChatRouter.delete('/chat/:id', verifyUser, UserChatController.deleteUserChat);
 userChatRouter.post('/chat/message', verifyUser, UserChatController.addNewTextMessage);
-userChatRouter.post('/audio', verifyUser, UserChatController.addNewAudioMessage);
+userChatRouter.post('/chat/audio-message', verifyUser, UserChatController.addNewAudioMessage);
 
 export default userChatRouter;

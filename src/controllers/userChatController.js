@@ -1,11 +1,9 @@
-import { Readable } from 'stream';
-
 import UserChatTextMessage from '../domain/userChatTextMessage.js';
-import { transcribeAudio } from '../services/whisper/whisper.js';
 import {
   createNewUserChat,
   deleteUserChat,
-  addNewTextMessageToUserChat
+  addNewTextMessageToUserChat,
+  addNewAudioMessageToUserChat
 } from '../services/userChat/userChat.js';
 import { badRequest } from '../services/error/handler.js';
 
@@ -68,15 +66,10 @@ export default class UserChatController {
    * @returns
    */
   static async addNewAudioMessage(req, res) {
+    const { uid } = req;
     const { userChatId } = req.body;
     const file = req.files[0];
-    const audioReadStream = Readable.from(file.buffer);
-    // OpenAI WhisperAPI is hacking around MIME type and is sensitive for file extension, so we need to add .path attribute
-    // To stream object, because Readable.from() does not have whereas fs.createReadStream() has it
-    // Supported formats: mp3, mp4, mpeg, mpga, m4a, wav, or webm
-    audioReadStream.path = 'file.mp3';
-
-    const result = await transcribeAudio(audioReadStream);
+    const result = await addNewAudioMessageToUserChat(file, uid, userChatId);
 
     res.status(200).send(result);
   }
