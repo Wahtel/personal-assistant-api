@@ -4,6 +4,7 @@ import {
   addUserChatMessage,
   getUserChatMessages
 } from '../../persistence/firestore/userChat.js';
+import { createChatCompletionWithChatGpt } from '../chatgpt/chatgpt.js';
 
 /**
  * Available roles for ChatGPT messages
@@ -32,13 +33,36 @@ export async function deleteUserChat(userId, chatId) {
 }
 
 /**
+ * Service method for UserChatController.addNewTextMessage controller method which adds user text message to
+ * The chat, generate ChatGPT response, add this response to chat and return response back to user
+ * @param {} userId
+ * @param {*} userChatTextMessage
+ * @returns
+ */
+export async function addNewTextMessageToUserChat(userId, userChatTextMessage) {
+  const userChatHistory = await getUserChatHistory(userId, userChatTextMessage.userChatId);
+  const [chatGptCompletion] = await Promise.all([
+    createChatCompletionWithChatGpt(userChatTextMessage.userInput, userChatHistory),
+    addUserMessageToUserChat(userId, userChatTextMessage.userChatId, userChatTextMessage.userInput)
+  ]);
+
+  await addChatGptAssistantMessageToUserChat(userId, userChatTextMessage.userChatId, chatGptCompletion);
+
+  const result = {
+    completion: chatGptCompletion
+  };
+
+  return result;
+}
+
+/**
  * Add message to user chat with user role
  * @param {*} userId
  * @param {*} chatId
  * @param {*} userMessageText
  * @returns
  */
-export async function addUserMessageToUserChat(userId, chatId, userMessageText) {
+async function addUserMessageToUserChat(userId, chatId, userMessageText) {
   const userMessageObject = {
     role: messageRoles.user,
     content: userMessageText
@@ -54,7 +78,7 @@ export async function addUserMessageToUserChat(userId, chatId, userMessageText) 
  * @param {*} userMessageText
  * @returns
  */
-export async function addChatGptAssistantMessageToUserChat(userId, chatId, chatGptAssistantMessageText) {
+async function addChatGptAssistantMessageToUserChat(userId, chatId, chatGptAssistantMessageText) {
   const chatGptAssistantMessageObject = {
     role: messageRoles.assistant,
     content: chatGptAssistantMessageText
@@ -68,7 +92,7 @@ export async function addChatGptAssistantMessageToUserChat(userId, chatId, chatG
  * @param {*} userChatId
  * @returns
  */
-export async function getUserChatHistory(userId, userChatId) {
+async function getUserChatHistory(userId, userChatId) {
   const messagesObjects = await getUserChatMessages(userId, userChatId);
   const userChatHistory = messagesObjects.map(({ role, content }) => ({
     role,

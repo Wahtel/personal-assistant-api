@@ -71,11 +71,10 @@ export async function getUserChatMessages(userId, chatId) {
     .collection('chats')
     .doc(chatId)
     .collection('messages');
-  const messagesSnapshot = await messagesRef.orderBy('createdAt', 'desc').get();
+  const messagesSnapshot = await messagesRef.orderBy('createdAt', 'asc').get();
   // .get() returns something array-like so we need to use .docs to apply map to this object
   // console.log(Array.from(messagesSnapshot))
   const messages = messagesSnapshot.docs.map(doc => {
-    console.log(doc.data())
     return {
       id: doc.id,
       ...doc.data()
