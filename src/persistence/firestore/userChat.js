@@ -40,10 +40,10 @@ export async function deleteUserChatById(userId, chatId) {
 
 /**
  * Add new message to user chat
- * @param {*} userId 
- * @param {*} chatId 
- * @param {*} message 
- * @returns 
+ * @param {*} userId
+ * @param {*} chatId
+ * @param {*} message
+ * @returns
  */
 export async function addUserChatMessage(userId, chatId, messageObject) {
   const res = await firebaseFirestore
@@ -56,4 +56,31 @@ export async function addUserChatMessage(userId, chatId, messageObject) {
   const messageId = res.id;
 
   return messageId;
+}
+
+/**
+ * Get all messages in user chat
+ * @param {*} userId 
+ * @param {*} chatId 
+ * @returns 
+ */
+export async function getUserChatMessages(userId, chatId) {
+  const messagesRef = firebaseFirestore
+    .collection('users')
+    .doc(userId)
+    .collection('chats')
+    .doc(chatId)
+    .collection('messages');
+  const messagesSnapshot = await messagesRef.orderBy('createdAt', 'desc').get();
+  // .get() returns something array-like so we need to use .docs to apply map to this object
+  // console.log(Array.from(messagesSnapshot))
+  const messages = messagesSnapshot.docs.map(doc => {
+    console.log(doc.data())
+    return {
+      id: doc.id,
+      ...doc.data()
+    }
+  });
+  
+  return messages;
 }

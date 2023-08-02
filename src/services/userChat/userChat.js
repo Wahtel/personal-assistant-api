@@ -1,4 +1,9 @@
-import { createUserChatForUser, deleteUserChatById, addUserChatMessage } from '../../persistence/firestore/userChat.js';
+import {
+  createUserChatForUser,
+  deleteUserChatById,
+  addUserChatMessage,
+  getUserChatMessages
+} from '../../persistence/firestore/userChat.js';
 
 /**
  * Available roles for ChatGPT messages
@@ -59,10 +64,16 @@ export async function addChatGptAssistantMessageToUserChat(userId, chatId, chatG
 }
 
 /**
- * Get all user's chats
+ * Get user chat history for ChatGPT completion context
  * @param {*} userChatId
  * @returns
  */
-export async function getUserChatHistory(userChatId) {
-  return [];
+export async function getUserChatHistory(userId, userChatId) {
+  const messagesObjects = await getUserChatMessages(userId, userChatId);
+  const userChatHistory = messagesObjects.map(({ role, content }) => ({
+    role,
+    content
+  }));
+
+  return userChatHistory;
 }

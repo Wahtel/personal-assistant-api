@@ -11,7 +11,7 @@ export async function createChatCompletionWithChatGpt(userInput, messagesContext
   // Add latest user input
   messagesContext.push({ role: 'user', content: userInput });
 
-  console.log(messagesContext);
+  // console.log(messagesContext);
 
   try {
     const completion = await openAiApiInstance.createChatCompletion({
