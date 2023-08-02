@@ -30,10 +30,30 @@ export async function createUserChatForUser(userId) {
  */
 export async function deleteUserChatById(userId, chatId) {
   // Path to the chat document
-  const chatDocumentPath = `users/${userId}/chats/${chatId}`
+  const chatDocumentPath = `users/${userId}/chats/${chatId}`;
   // Path to collection of messages in provided chat
   const messagesCollectionPath = `${chatDocumentPath}/messages`;
 
   await deleteCollection(firebaseFirestore, messagesCollectionPath, 10);
   await firebaseFirestore.doc(chatDocumentPath).delete();
+}
+
+/**
+ * Add new message to user chat
+ * @param {*} userId 
+ * @param {*} chatId 
+ * @param {*} message 
+ * @returns 
+ */
+export async function addUserChatMessage(userId, chatId, messageObject) {
+  const res = await firebaseFirestore
+    .collection('users')
+    .doc(userId)
+    .collection('chats')
+    .doc(chatId)
+    .collection('messages')
+    .add({ ...messageObject, createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp() });
+  const messageId = res.id;
+
+  return messageId;
 }

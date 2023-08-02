@@ -4,7 +4,7 @@ import UserChatTextMessage from '../domain/userChatTextMessage.js';
 import { getUserChatHistory } from '../services/userChat/userChat.js';
 import { createChatCompletionWithChatGpt } from '../services/chatgpt/chatgpt.js';
 import { transcribeAudio } from '../services/whisper/whisper.js';
-import { createNewUserChat, deleteUserChat } from '../services/userChat/userChat.js';
+import { createNewUserChat, deleteUserChat, addUserMessageToUserChat, addChatGptAssistantMessageToUserChat } from '../services/userChat/userChat.js';
 import { badRequest } from '../services/error/handler.js';
 
 /**
@@ -51,7 +51,16 @@ export default class UserChatController {
     const { userChatId, userInput } = req.body;
     const userChatTextMessage = new UserChatTextMessage(userChatId, userInput);
     const userChatHistory = await getUserChatHistory(userChatTextMessage.userChatId);
-    const result = await createChatCompletionWithChatGpt(userChatTextMessage.userInput, userChatHistory);
+
+    await addUserMessageToUserChat(uid, userChatTextMessage.userChatId, userChatTextMessage.userInput);
+
+    const chatGptCompletion = await createChatCompletionWithChatGpt(userChatTextMessage.userInput, userChatHistory);
+
+    await addChatGptAssistantMessageToUserChat(uid, userChatTextMessage.userChatId, chatGptCompletion);
+
+    const result = {
+      completion: chatGptCompletion
+    };
 
     res.status(200).send(result);
   }
