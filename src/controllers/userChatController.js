@@ -3,7 +3,9 @@ import {
   createNewUserChat,
   deleteUserChat,
   addNewTextMessageToUserChat,
-  addNewAudioMessageToUserChat
+  addNewAudioMessageToUserChat,
+  getUserChats,
+  getUserChatHistoryMessages
 } from '../services/userChat/userChat.js';
 import { badRequest } from '../services/error/handler.js';
 
@@ -50,7 +52,7 @@ export default class UserChatController {
     const { uid } = req;
     const { userChatId, userInput } = req.body;
     const userChatTextMessage = new UserChatTextMessage(userChatId, userInput);
-    const chatGptCompletion = await addNewTextMessageToUserChat(uid, userChatTextMessage)
+    const chatGptCompletion = await addNewTextMessageToUserChat(uid, userChatTextMessage);
     const result = {
       completion: chatGptCompletion
     };
@@ -72,5 +74,30 @@ export default class UserChatController {
     const result = await addNewAudioMessageToUserChat(file, uid, userChatId);
 
     res.status(200).send(result);
+  }
+
+  /**
+   * Method for getting all user chats by userId from Authorization token
+   * @param {*} req
+   * @param {*} res
+   */
+  static async getAllUserChats(req, res) {
+    const { uid } = req;
+    const chats = await getUserChats(uid);
+
+    res.status(200).send(chats);
+  }
+
+  /**
+   * Method for getting user chat history: all message in ascensing order (older messages go first like in all chats)
+   * @param {*} req
+   * @param {*} res
+   */
+  static async getUserChatHistory(req, res) {
+    const { uid } = req;
+    const { id: chatId } = req.params;
+    const userChatMessages = await getUserChatHistoryMessages(uid, chatId)
+
+    res.status(200).send(userChatMessages);
   }
 }

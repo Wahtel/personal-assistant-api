@@ -5,7 +5,8 @@ import {
   createUserChatForUser,
   deleteUserChatById,
   addUserChatMessage,
-  getUserChatMessages
+  getUserChatMessages,
+  getUserChatsByUserId
 } from '../../persistence/firestore/userChat.js';
 import { createChatCompletionWithChatGpt } from '../chatgpt/chatgpt.js';
 import { transcribeAudio } from '../whisper/whisper.js';
@@ -37,14 +38,14 @@ export async function deleteUserChat(userId, chatId) {
 }
 
 /**
- * Service method which adds user text message to еhe chat, generate ChatGPT response, add this response to chat and 
+ * Service method which adds user text message to еhe chat, generate ChatGPT response, add this response to chat and
  * Return response back to user
  * @param {} userId
  * @param {*} userChatTextMessage
  * @returns
  */
 export async function addNewTextMessageToUserChat(userId, userChatTextMessage) {
-  const userChatHistory = await getUserChatHistory(userId, userChatTextMessage.userChatId);
+  const userChatHistory = await getUserChatHistoryForChatGptCompletionMessages(userId, userChatTextMessage.userChatId);
   const [chatGptCompletion] = await Promise.all([
     createChatCompletionWithChatGpt(userChatTextMessage.userInput, userChatHistory),
     addUserMessageToUserChat(userId, userChatTextMessage.userChatId, userChatTextMessage.userInput)
@@ -78,6 +79,38 @@ export async function addNewAudioMessageToUserChat(file, userId, userChatId) {
   };
 
   return result;
+}
+
+/**
+ * Return all user's chats (newest first)
+ * @param {*} userId
+ * @returns
+ */
+export async function getUserChats(userId) {
+  const chatsObjects = await getUserChatsByUserId(userId);
+  const userChats = chatsObjects.map((chat) => ({
+    ...chat,
+    updatedAt: chat.updatedAt.toDate(),
+    createdAt: chat.createdAt.toDate()
+  }));
+
+  return userChats;
+}
+
+/**
+ * Get user chat history messages for inside-chat view
+ * @param {*} userChatId
+ * @returns
+ */
+export async function getUserChatHistoryMessages(userId, userChatId) {
+  const messagesObjects = await getUserChatMessages(userId, userChatId);
+  const userChatHistory = messagesObjects.map((message) => ({
+    ...message,
+    updatedAt: message.updatedAt.toDate(),
+    createdAt: message.createdAt.toDate()
+  }));
+
+  return userChatHistory;
 }
 
 /**
@@ -117,7 +150,7 @@ async function addChatGptAssistantMessageToUserChat(userId, chatId, chatGptAssis
  * @param {*} userChatId
  * @returns
  */
-async function getUserChatHistory(userId, userChatId) {
+async function getUserChatHistoryForChatGptCompletionMessages(userId, userChatId) {
   const messagesObjects = await getUserChatMessages(userId, userChatId);
   const userChatHistory = messagesObjects.map(({ role, content }) => ({
     role,

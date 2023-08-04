@@ -114,3 +114,25 @@ export async function getUserChatMessages(userId, chatId) {
 
   return messages;
 }
+
+/**
+ * Return all user's chats sorted by updatedAt in descending order (newest first)
+ * @returns 
+ */
+export async function getUserChatsByUserId(userId) {
+  const chatsRef = firebaseFirestore
+    .collection('users')
+    .doc(userId)
+    .collection('chats')
+  const chatsSnapshot = await chatsRef.orderBy('updatedAt', 'desc').get();
+  // .get() returns something array-like so we need to use .docs to apply map to this object
+  // console.log(Array.from(messagesSnapshot))
+  const chats = chatsSnapshot.docs.map((doc) => {
+    return {
+      id: doc.id,
+      ...doc.data()
+    };
+  });
+
+  return chats;
+}
