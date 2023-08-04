@@ -4,21 +4,22 @@ import { firebaseFirestore } from '../../config/firebase/firebase.js';
 import { deleteCollection } from './helpers.js';
 
 /**
+ * Initial value for user chat title
+ */
+const INITIAL_USERCHAT_TITLE = 'New chat';
+
+/**
  * Create new user chat with auto-generated id and return this id
  * @param {*} userId
  * @returns
  */
 export async function createUserChatForUser(userId) {
-  const res = await firebaseFirestore
-    .collection('users')
-    .doc(userId)
-    .collection('chats')
-    .add({ createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp() });
+  const res = await firebaseFirestore.collection('users').doc(userId).collection('chats').add({
+    title: INITIAL_USERCHAT_TITLE,
+    createdAt: FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp()
+  });
   const chatId = res.id;
-
-  // const res = await docRef.update({
-  //   timestamp: FieldValue.serverTimestamp()
-  // });
 
   return chatId;
 }
@@ -46,23 +47,53 @@ export async function deleteUserChatById(userId, chatId) {
  * @returns
  */
 export async function addUserChatMessage(userId, chatId, messageObject) {
-  const res = await firebaseFirestore
-    .collection('users')
-    .doc(userId)
-    .collection('chats')
-    .doc(chatId)
-    .collection('messages')
-    .add({ ...messageObject, createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp() });
+  const [res] = await Promise.all([
+    firebaseFirestore
+      .collection('users')
+      .doc(userId)
+      .collection('chats')
+      .doc(chatId)
+      .collection('messages')
+      .add({ ...messageObject, createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp() }),
+    updateUserChatUpdateAtProperty(userId, chatId),
+    setUserChatTitle(userId, chatId, messageObject?.content || INITIAL_USERCHAT_TITLE)
+  ]);
   const messageId = res.id;
 
   return messageId;
 }
 
 /**
+ * Update user chat updatedAt property to current timestamp
+ * @param {*} userId
+ * @param {*} chatId
+ */
+export async function updateUserChatUpdateAtProperty(userId, chatId) {
+  const chatRef = await firebaseFirestore.collection('users').doc(userId).collection('chats').doc(chatId);
+
+  await chatRef.update({
+    updatedAt: FieldValue.serverTimestamp()
+  });
+}
+
+/**
+ * Set user chat title property
+ * @param {*} userId
+ * @param {*} chatId
+ */
+export async function setUserChatTitle(userId, chatId, title) {
+  const chatRef = await firebaseFirestore.collection('users').doc(userId).collection('chats').doc(chatId);
+
+  await chatRef.update({
+    title
+  });
+}
+
+/**
  * Get all messages in user chat
- * @param {*} userId 
- * @param {*} chatId 
- * @returns 
+ * @param {*} userId
+ * @param {*} chatId
+ * @returns
  */
 export async function getUserChatMessages(userId, chatId) {
   const messagesRef = firebaseFirestore
@@ -74,12 +105,12 @@ export async function getUserChatMessages(userId, chatId) {
   const messagesSnapshot = await messagesRef.orderBy('createdAt', 'asc').get();
   // .get() returns something array-like so we need to use .docs to apply map to this object
   // console.log(Array.from(messagesSnapshot))
-  const messages = messagesSnapshot.docs.map(doc => {
+  const messages = messagesSnapshot.docs.map((doc) => {
     return {
       id: doc.id,
       ...doc.data()
-    }
+    };
   });
-  
+
   return messages;
 }
