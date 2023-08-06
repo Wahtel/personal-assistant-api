@@ -7,6 +7,7 @@ import {
   getUserChats,
   getUserChatHistoryMessages
 } from '../services/userChat/userChat.js';
+import { synthesizeSpeechViaGoogleCloudApi } from '../services/text-to-speech/text-to-speech.js';
 import { badRequest } from '../services/error/handler.js';
 
 /**
@@ -89,15 +90,27 @@ export default class UserChatController {
   }
 
   /**
-   * Method for getting user chat history: all message in ascensing order (older messages go first like in all chats)
+   * Method for getting user chat history: all message in ascensing order (older messages go first like in all)
    * @param {*} req
    * @param {*} res
    */
   static async getUserChatHistory(req, res) {
     const { uid } = req;
     const { id: chatId } = req.params;
-    const userChatMessages = await getUserChatHistoryMessages(uid, chatId)
+    const userChatMessages = await getUserChatHistoryMessages(uid, chatId);
 
     res.status(200).send(userChatMessages);
+  }
+
+  /**
+   * Synthesize message text and return mp3 file in base64 string format
+   * @param {*} req
+   * @param {*} res
+   */
+  static async synthesizeUserChatMessage(req, res) {
+    const { text } = req.body;
+    const base64synthesizeAudio = await synthesizeSpeechViaGoogleCloudApi(text)
+
+    res.status(200).send(base64synthesizeAudio);
   }
 }

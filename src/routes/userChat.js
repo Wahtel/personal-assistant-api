@@ -11,5 +11,6 @@ userChatRouter.get('/chat/:id', verifyUser, UserChatController.getUserChatHistor
 userChatRouter.delete('/chat/:id', verifyUser, UserChatController.deleteUserChat);
 userChatRouter.post('/chat/message', verifyUser, UserChatController.addNewTextMessage);
 userChatRouter.post('/chat/audio-message', verifyUser, UserChatController.addNewAudioMessage);
+userChatRouter.post('/chat/synthesize', verifyUser, UserChatController.synthesizeUserChatMessage);
 
 export default userChatRouter;
