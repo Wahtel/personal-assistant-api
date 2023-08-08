@@ -11,8 +11,10 @@ export default class UserController {
    */
   static async deleteUser(req, res) {
     const { uid } = req;
-    await deleteFirebaseUser(uid);
+    const [err, result] = await deleteFirebaseUser(uid);
 
-    res.status(200).send('OK');
+    if (err) return res.status(err.statusCode).send({ message: err.message });
+
+    res.status(200).send(result);
   }
 }

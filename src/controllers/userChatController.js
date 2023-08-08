@@ -108,8 +108,11 @@ export default class UserChatController {
    * @param {*} res
    */
   static async synthesizeUserChatMessage(req, res) {
-    const { text } = req.body;
-    const base64synthesizeAudio = await synthesizeSpeechViaGoogleCloudApi(text)
+    const { text, voiceConfig } = req.body;
+    const voiceRequestConfig  = voiceConfig ? JSON.parse(voiceConfig) : null;
+    const [err, base64synthesizeAudio] = await synthesizeSpeechViaGoogleCloudApi(text, voiceRequestConfig);
+
+    if (err) return res.status(err.statusCode).send({ message: err.message });
 
     res.status(200).send(base64synthesizeAudio);
   }
